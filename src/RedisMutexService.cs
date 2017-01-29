@@ -7,15 +7,19 @@ namespace tex.net
     public class RedisMutexService : RedisServiceBase, IMutexService
     {
         private static RedisMutexService _instance;
-
+        private static readonly object Locker = new object();
         protected RedisMutexService()
         {
         }
 
-        //TOOD: make this thread safe
         public static RedisMutexService GetInstance()
         {
-            return _instance ?? (_instance = new RedisMutexService());
+            if (_instance != null) return _instance;
+            lock (Locker)
+            {
+                _instance = new RedisMutexService();
+            }
+            return _instance;
         }
 
         public override void Dispose()
